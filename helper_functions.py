@@ -167,7 +167,7 @@ def get_supported_combinations(ab: ptwo, cd: ptwo, supp_plus: set[ptwo]) -> set[
     return supported_combinations
 
 
-def X1(R: ptwo_bin_rel) -> bool:
+def X1(R: ptwo_bin_rel) -> tuple[bool, tuple[ptwo, ptwo] | None]:
     """
     Input:
         R_plus: The reflexive-, transitive-, cross-consistent closure of a binary relation R on 𝒫₂(X) ⨉ 𝒫₂(X).
@@ -180,10 +180,10 @@ def X1(R: ptwo_bin_rel) -> bool:
     for (a, b), pqs in R.items():
         for (p, q) in pqs:                      # Check for each abRpq:
             if p == q and (p != a or p != b):   # if pq = pp, and ab != pp
-                return False                    # then the condtion is broken
-    return True
+                return False, ((a,b), (p,q))                  # then the condtion is broken
+    return True, None
 
-def X2(R: ptwo_bin_rel, R_plus: ptwo_bin_rel) -> bool:
+def X2(R: ptwo_bin_rel, R_plus: ptwo_bin_rel) -> tuple[bool, tuple[ptwo, ptwo] | None]:
     """
     Input:
         R: A binary relation on 𝒫₂(X) ⨉ 𝒫₂(X).
@@ -204,9 +204,9 @@ def X2(R: ptwo_bin_rel, R_plus: ptwo_bin_rel) -> bool:
         for xy in xys:                                      # Check for each (ab, xy) in tc(R).
             if (xy not in tc_R) or (ab not in tc_R[xy]):    # If (xy, ab) not in tc(R),
                 if (ab in R_plus[xy]):                      # and (xy, ab) in R_plus
-                    return False                            # then the condition is broken.
+                    return False, (ab,xy)                            # then the condition is broken.
             
-    return True
+    return True, None
 
 # TODO: Need to verify this really is correct
 def get_transitive_closure(R: ptwo_bin_rel) -> ptwo_bin_rel:
