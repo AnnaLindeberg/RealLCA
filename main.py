@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import networkx as nx
-import sys
 
 from lca_types import leaf, ptwo, ptwo_bin_rel
 from parse_input import read_constraints_csv
@@ -26,7 +25,10 @@ def Algorithm_1(X: set[leaf], R: ptwo_bin_rel) -> tuple[bool, tuple[nx.DiGraph, 
         X: Some ground set
         R: A binary relation on 𝒫₂(X) ⨉ 𝒫₂(X).
     Output:
-        False if the relation is not realizable, otherwise returns the Canonical DAG and Canonical Network of R.
+        True, (G_r, N_r) if the relation R is realizable.
+
+        False, "Xi: ab,cd" if the rellation R is not realizable, where Xi says 
+        which condition was broken and ab,cd is the constraint the violated the condition.
     """
     R = unify_representation(R)                         # Make sure the representations of elements {a,b} = {b,a} are consistent.
     supp_plus_R = get_extended_support(X, R)            # 1
@@ -77,6 +79,10 @@ def main():
     TODO: Add docstring
     """
 
+    # Imports dome here since needed to run as a program, but not for Algorithm_1 to work if imported to other project
+    import matplotlib.pyplot as plt
+    import sys 
+
     # Get csv file with constraints either as commandline argument or as user input
     if len(sys.argv) == 2:
         constraint_file = sys.argv[1]
@@ -95,17 +101,17 @@ def main():
     res = Algorithm_1(X, R)
     match res:
         case True, graphs:
-            if type(graphs) != tuple[nx.DiGraph, nx.DiGraph]:
-                raise TypeError(f"type: tuple[nx.DiGraph, nx.DiGraph] expected, but got: {type(graphs)}")
+            if type(graphs) != tuple:
+                raise TypeError(f"type: tuple expected, but got: {type(graphs)}")
             G_r, N_r = graphs
         case False, broken_constraint:
+            if type(broken_constraint) != str:
+                raise TypeError(f"type: str expected, but got: {type(broken_constraint)}")
             print("The relation is not realizable", broken_constraint)
             return
         case _:
             raise TypeError(f"Algorithm_1 returned object of type: {type(res)}")
 
-
-    import matplotlib.pyplot as plt
     draw_DAG(G_r)
     plt.show()
     draw_DAG(N_r)
