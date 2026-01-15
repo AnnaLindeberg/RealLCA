@@ -31,8 +31,9 @@ def draw_DAG(G: nx.DiGraph,
     #     G.nodes[node]["layer"] = leaf_layer
 
     pos = nx.multipartite_layout(G, subset_key="layer", align="horizontal")
+    flipped_pos = {node: (x, -y) for (node, (x,y)) in pos.items()}
 
-    nx.draw(G, pos=pos, ax=ax, with_labels=True)
+    nx.draw(G, pos=flipped_pos, ax=ax, with_labels=True)
 
 
 def plot_results(realizable: bool, results_list: list) -> None:
