@@ -42,9 +42,10 @@ def Algorithm_1(X: set[leaf], R: ptwo_bin_rel) -> tuple[bool, tuple[nx.DiGraph, 
         G_r = get_canoncial_dag(order_R_plus)           # 7
         N_r = get_canoncial_network(G_r)                # 8
         return True, (G_r, N_r)                         # 9
-    if not bool_X1:                                     # 10
+    elif not bool_X1:                                   # 10
         return False, f"X1: {falsifying_constraint_X1}"
-    return False, f"X2: {falsifying_constraint_X2}"    
+    else:
+        return False, f"X2: {falsifying_constraint_X2}"    
 
 
 def Algorithm_1_full_output(X: set[leaf], R: ptwo_bin_rel) -> tuple[bool, list]:
@@ -70,9 +71,10 @@ def Algorithm_1_full_output(X: set[leaf], R: ptwo_bin_rel) -> tuple[bool, list]:
         G_r = get_canoncial_dag(order_R_plus)           # 7
         N_r = get_canoncial_network(G_r)                # 8
         return True, [R, supp_plus_R, R_plus, equiv_R_plus, Q_set, order_R_plus, G_r, N_r]   
-    if not bool_X1:         
-        return False, [R, supp_plus_R, R_plus, falsifying_constraint_X1] 
-    return False, [R, supp_plus_R, R_plus, falsifying_constraint_X2]     
+    elif not bool_X1:         
+        return False, [R, supp_plus_R, R_plus, "X1", falsifying_constraint_X1]
+    else: 
+        return False, [R, supp_plus_R, R_plus, "X2", falsifying_constraint_X2]     
 
 def main():
     """
