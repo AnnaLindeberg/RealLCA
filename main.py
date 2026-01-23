@@ -4,7 +4,7 @@ import networkx as nx
 
 from lca_types import leaf, ptwo, ptwo_bin_rel
 from parse_input import read_constraints_csv
-from graph_drawing import draw_DAG
+from graph_drawing import draw_DAG, get_legend_text, add_legend
 from helper_functions import (
     unify_representation,
     get_extended_support,
@@ -81,13 +81,31 @@ def main():
     TODO: Add docstring
     """
 
-    # Imports dome here since needed to run as a program, but not for Algorithm_1 to work if imported to other project
+    # Imports done here since needed to run as a program, but not for Algorithm_1 to work if imported to other project
     import matplotlib.pyplot as plt
-    import sys 
+    import argparse
+
+    parser = argparse.ArgumentParser(
+
+    )
+
+    parser.add_argument("filename", 
+                        nargs="?", 
+                        default=None,
+                        help="The name of a csv-file specifying a leafset and lca-constraints. Note that this argument is optional.")
+    parser.add_argument('-e', '--equiv_classes', 
+                        action='store_true',
+                        help="Add this option to display the equivalence classes with two or more memembers."
+                        )
+
+    args = parser.parse_args()
 
     # Get csv file with constraints either as commandline argument or as user input
-    if len(sys.argv) == 2:
-        constraint_file = sys.argv[1]
+    if args.filename:
+        if len(args.filename) > 1:
+            print("Please only pass a single csv-file as positional argument.")
+            return
+        constraint_file = args.filename
     else:
         constraint_file = input("Please write the name of a csv file defining a relation: ")
 
@@ -99,25 +117,44 @@ def main():
     except FileNotFoundError:
         print("The file", constraint_file, "could not be found")
         return
+    
+    with_legend = args.equiv_classes
 
-    res = Algorithm_1(X, R)
-    match res:
-        case True, graphs:
-            if type(graphs) != tuple:
-                raise TypeError(f"type: tuple expected, but got: {type(graphs)}")
-            G_r, N_r = graphs
-        case False, broken_constraint:
-            if type(broken_constraint) != str:
-                raise TypeError(f"type: str expected, but got: {type(broken_constraint)}")
-            print("The relation is not realizable", broken_constraint)
-            return
-        case _:
-            raise TypeError(f"Algorithm_1 returned object of type: {type(res)}")
+    if with_legend:
+        res = Algorithm_1_full_output(X, R)
+        match res:
+            case True, [_, _, _, equiv_R_plus, Q_set, _, G_r, N_r]:
+                legend_text = get_legend_text(Q_set, equiv_R_plus)
 
-    draw_DAG(G_r)
-    plt.show()
-    draw_DAG(N_r)
-    plt.show()
+                draw_DAG(G_r)
+                add_legend(legend_text)
+                plt.show()
+
+                draw_DAG(N_r)
+                add_legend(legend_text)
+                plt.show()
+            case False, [_, _, _, X1_or_X2, broken_constraint]:
+                print("The relation is not realizable", f"{X1_or_X2}: {broken_constraint}")
+                return
+            case _:
+                raise TypeError(f"Algorithm_1_full_output returned object of type: {type(res)}")
+
+    else:
+        res = Algorithm_1(X, R)
+        match res:
+            case True, (G_r, N_r):
+                draw_DAG(G_r)
+                plt.show()
+                draw_DAG(N_r)
+                plt.show()
+            case False, broken_constraint:
+                if type(broken_constraint) != str:
+                    raise TypeError(f"type: str expected, but got: {type(broken_constraint)}")
+                print("The relation is not realizable", broken_constraint)
+                return
+            case _:
+                raise TypeError(f"Algorithm_1 returned object of type: {type(res)}")
+
 
 
 if __name__ == "__main__":
