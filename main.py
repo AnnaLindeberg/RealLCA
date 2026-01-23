@@ -102,9 +102,6 @@ def main():
 
     # Get csv file with constraints either as commandline argument or as user input
     if args.filename:
-        if len(args.filename) > 1:
-            print("Please only pass a single csv-file as positional argument.")
-            return
         constraint_file = args.filename
     else:
         constraint_file = input("Please write the name of a csv file defining a relation: ")
