@@ -64,7 +64,7 @@ def get_R_plus(R: ptwo_bin_rel, supp_plus_R: set[ptwo]) -> ptwo_bin_rel:
 
         change_made = R3(S, supp_plus_R)
         
-        if change_made:
+        if not change_made:
             break           
 
     return S
