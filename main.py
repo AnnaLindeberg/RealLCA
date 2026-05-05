@@ -19,7 +19,7 @@ from helper_functions import (
 )
    
 
-def Algorithm_1(X: set[leaf], R: ptwo_bin_rel) -> tuple[bool, tuple[nx.DiGraph, nx.DiGraph] | str]:
+def Algorithm_2(X: set[leaf], R: ptwo_bin_rel) -> tuple[bool, tuple[nx.DiGraph, nx.DiGraph] | str]:
     """
     Input:
         X: Some ground set
@@ -31,8 +31,7 @@ def Algorithm_1(X: set[leaf], R: ptwo_bin_rel) -> tuple[bool, tuple[nx.DiGraph, 
         which condition was broken and ab,cd is the constraint the violated the condition.
     """
     R = unify_representation(R)                         # Make sure the representations of elements {a,b} = {b,a} are consistent.
-    supp_plus_R = get_extended_support(X, R)            # 1
-    R_plus = get_R_plus(R, supp_plus_R)                 # 2
+    R_plus = get_R_plus(R, X)                           # 1 & 2
     bool_X1, falsifying_constraint_X1 = X1(R_plus) 
     bool_X2, falsifying_constraint_X2 = X2(R, R_plus)
     if bool_X1 and bool_X2:                             # 3
@@ -48,7 +47,7 @@ def Algorithm_1(X: set[leaf], R: ptwo_bin_rel) -> tuple[bool, tuple[nx.DiGraph, 
         return False, f"X2: {falsifying_constraint_X2}"    
 
 
-def Algorithm_1_full_output(X: set[leaf], R: ptwo_bin_rel) -> tuple[bool, list]:
+def Algorithm_2_full_output(X: set[leaf], R: ptwo_bin_rel) -> tuple[bool, list]:
     """
     Input:
         X: Some ground set
@@ -61,7 +60,7 @@ def Algorithm_1_full_output(X: set[leaf], R: ptwo_bin_rel) -> tuple[bool, list]:
     """
     R = unify_representation(R)                         # Make sure the representations of elements {a,b} = {b,a} are consistent.
     supp_plus_R = get_extended_support(X, R)            # 1
-    R_plus = get_R_plus(R, supp_plus_R)                 # 2
+    R_plus = get_R_plus(R, X)                 # 2
     bool_X1, falsifying_constraint_X1 = X1(R_plus) 
     bool_X2, falsifying_constraint_X2 = X2(R, R_plus)
     if bool_X1 and bool_X2:                             # 3
@@ -118,7 +117,7 @@ def main():
     with_legend = args.equiv_classes
 
     if with_legend:
-        res = Algorithm_1_full_output(X, R)
+        res = Algorithm_2_full_output(X, R)
         match res:
             case True, [_, _, _, equiv_R_plus, Q_set, _, G_r, N_r]:
                 legend_text = get_legend_text(Q_set, equiv_R_plus)
@@ -137,7 +136,7 @@ def main():
                 raise TypeError(f"Algorithm_1_full_output returned object of type: {type(res)}")
 
     else:
-        res = Algorithm_1(X, R)
+        res = Algorithm_2(X, R)
         match res:
             case True, (G_r, N_r):
                 draw_DAG(G_r)

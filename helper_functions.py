@@ -32,12 +32,12 @@ def get_extended_support(X: set[leaf], R: ptwo_bin_rel) -> set[ptwo]:
 
     return out
 
-
-def get_R_plus(R: ptwo_bin_rel, supp_plus_R: set[ptwo]) -> ptwo_bin_rel:
+# Algorithm 1
+def get_R_plus(R: ptwo_bin_rel, X: set[leaf]) -> ptwo_bin_rel:
     """
     Input:
         R: A binary relation on 𝒫₂(X) ⨉ 𝒫₂(X)
-        supp_plus_R: The extended support of R
+        X: A set of leaf nodes
     Output:
         The relexive-, transitive-, cross-consistent closure of R, called R_plus.
 
@@ -48,6 +48,7 @@ def get_R_plus(R: ptwo_bin_rel, supp_plus_R: set[ptwo]) -> ptwo_bin_rel:
             R2: if pSq and qSr, add pSr
             R3: if ab in supp_plus_R and acSxy and bdSxy for some c,d in X, add abSxy
     """
+    supp_plus_R = get_extended_support(X, R)
     S: ptwo_bin_rel = copy.deepcopy(R)
     
     #R1
@@ -319,6 +320,7 @@ def get_canoncial_dag(order_R_plus: ptwo_bin_rel) -> nx.DiGraph:
     
     leaf_dict = {node: node[0] for node in leaf_list} # Rename each (a,a) to a
     G_r = nx.relabel_nodes(G_r, leaf_dict)
+    G_r = nx.transitive_reduction(G_r)
 
     return G_r
 
@@ -332,7 +334,7 @@ def get_canoncial_network(G_r) -> nx.DiGraph:
     See definition 6.3
     """
 
-    N_r = nx.transitive_reduction(G_r)  # Removing all shortcuts from G_r
+    N_r = G_r.copy()
 
     roots = find_roots(N_r)             # Find all roots of G_r
 
