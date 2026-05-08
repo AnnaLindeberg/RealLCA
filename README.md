@@ -66,7 +66,7 @@ TODO: Finish describing what parts might be interesting to import and in which m
 
 
 ## Citation and references
-#Todo: will this be a library? Figure out what to call it. Also find how to do proper citation.
+#Todo: Also find how to do proper citation.
 
 If you use this library in your project or code, please consider citing:
   
