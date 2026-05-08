@@ -56,7 +56,7 @@ def Algorithm_2_full_output(X: set[leaf], R: ptwo_bin_rel) -> tuple[bool, list]:
         False and a list with [R, supp_plus_R, R_plus] if the relations is not realizable.
         True and a list with [R, supp_plus_R, R_plus, equiv_R_plus, Q_set, order_R_plus, G_r, N_r] if the relation is realizable.
         
-    Does the same thing as Algorithm_1 but also returns the result of each step in the final output.
+    Does the same thing as Algorithm_2 but also returns the result of each step in the final output.
     """
     R = unify_representation(R)                         # Make sure the representations of elements {a,b} = {b,a} are consistent.
     supp_plus_R = get_extended_support(X, R)            # 1

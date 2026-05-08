@@ -41,7 +41,7 @@ def get_R_plus(R: ptwo_bin_rel, X: set[leaf]) -> ptwo_bin_rel:
     Output:
         The relexive-, transitive-, cross-consistent closure of R, called R_plus.
 
-    This is done as described in Theorem 4.5:
+    This is an implementation of Algorithm 1 in the article.
         Let S = R
         R1: Add pSp for each p in supp_plus_R
         Repeatedly apply the following rules until they can no longer be applied:
@@ -143,7 +143,7 @@ def X1(R: ptwo_bin_rel) -> tuple[bool, tuple[ptwo, ptwo] | None]:
     Input:
         R_plus: The reflexive-, transitive-, cross-consistent closure of a binary relation R on 𝒫₂(X) ⨉ 𝒫₂(X).
     Output:
-        True if the relation R satisifies condition X1 given in definition 5.1
+        True if the relation R satisifies condition X1 given in Definition 23.
 
     The condition says that for all a,b,x in X: {a,b} != {x,x} implies ({a,b},{x,x}) not in R_plus.
     Equivalently, for all a,b,x in X: if {a,b}R_plus{x,x}, then {a,b} == {x,x}. 
@@ -160,7 +160,7 @@ def X2(R: ptwo_bin_rel, R_plus: ptwo_bin_rel) -> tuple[bool, tuple[ptwo, ptwo] |
         R: A binary relation on 𝒫₂(X) ⨉ 𝒫₂(X).
         R_plus: The reflexive-, transitive-, cross-consistent closure of a binary relation R on 𝒫₂(X) ⨉ 𝒫₂(X).
     Output:
-        True if the relation R satisifies condition X2 given in definition 5.1
+        True if the relation R satisifies condition X2 given in Definition 23.
 
     The condition says that for all a,b,x,y in X: 
         if {a,b}tc(R){x,y} but it's not the case that {x,y}tc(R){a,b}, 
@@ -203,7 +203,7 @@ def get_equiv_r_plus(R_plus: ptwo_bin_rel) -> ptwo_bin_rel:
     Input:
         R_plus: The reflexive-, transitive-, cross-consistent closure of a binary relation R on 𝒫₂(X) ⨉ 𝒫₂(X).
     Output:
-        An equivalence relation equiv_r_plus as described in Lemma 5.3
+        An equivalence relation equiv_r_plus as described in Definition 26.
         
     The relation equiv_r_plus is a binary relation on the extended support of R, 
     and defined such that p equiv_r_plus q iff p R_plus q and q R_plus p.
@@ -246,7 +246,7 @@ def get_order_r_plus(Q_set: set[ptwo], R_plus: ptwo_bin_rel) -> ptwo_bin_rel:
         Q_set: the set of equivalence classes in equiv_r_plus
         R_plus: The reflexive-, transitive-, cross-consistent closure of a binary relation R on 𝒫₂(X) ⨉ 𝒫₂(X)
     Output:
-        An ordering of the equivalnce classes in Q_set as defined in Lemma 5.4
+        An ordering of the equivalnce classes in Q_set as defined in Definition 26.
 
     For two classes [p] and [q] in Q_set, we have that [p] <= [q] iff p R_plus q. 
     """
@@ -269,7 +269,8 @@ def get_canoncial_dag(order_R_plus: ptwo_bin_rel) -> nx.DiGraph:
     Output:
         The canonical dag of R as a networkx DiGraph
 
-    See Definition 5.5. 
+    See Definition 27. 
+    The canonical DAG G_r is the Hasse Diagram of the poset (Q_set, order_R_plus) with leafs (a,a) renamed to a.
     """
 
     G_r = nx.DiGraph(order_R_plus).reverse()        # reverse it so we get edges q -> p instead of p -> q
@@ -295,7 +296,7 @@ def get_canoncial_network(G_r) -> nx.DiGraph:
     Output:
         The canonincal network of R as networkx DiGraph
 
-    See definition 6.3
+    See definition 37.
     """
 
     N_r = G_r.copy()
