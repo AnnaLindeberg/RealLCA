@@ -171,8 +171,8 @@ def X2(R: ptwo_bin_rel, R_plus: ptwo_bin_rel) -> tuple[bool, tuple[ptwo, ptwo] |
 
     tc_R = get_transitive_closure(R)
     
-    for ab, xys in tc_R.items():
-        for xy in xys:                                      # Check for each (ab, xy) in tc(R).
+    for ab, xys in R.items():
+        for xy in xys:                                      # Check for each (ab, xy) in R.
             if (xy not in tc_R) or (ab not in tc_R[xy]):    # If (xy, ab) not in tc(R),
                 if (ab in R_plus[xy]):                      # and (xy, ab) in R_plus
                     return False, (ab,xy)                            # then the condition is broken.

@@ -32,7 +32,7 @@ def Algorithm_2(X: set[leaf], R: ptwo_bin_rel) -> tuple[bool, tuple[nx.DiGraph, 
     """
     R = unify_representation(R)                         # Make sure the representations of elements {a,b} = {b,a} are consistent.
     R_plus = get_R_plus(R, X)                           # 1 & 2
-    bool_X1, falsifying_constraint_X1 = X1(R_plus) 
+    bool_X1, falsifying_constraint_X1 = X1(R) 
     bool_X2, falsifying_constraint_X2 = X2(R, R_plus)
     if bool_X1 and bool_X2:                             # 3
         equiv_R_plus = get_equiv_r_plus(R_plus)         # 4
