@@ -1,10 +1,16 @@
 import collections.abc # just for typechecking that we have things that can be used as nodes
+from typing import Protocol
 
-type leaf = collections.abc.Hashable
-"""
-Elements of the leaf set X can be of any Hashable type. 
-This restriction is placed so that they will work as nodes in networkx.
-"""
+
+class leaf(collections.abc.Hashable, Protocol):
+    """
+    A leaf is an element of the ground set X. 
+    It can be of any type that is both Hashable and Comparable. 
+    While only Hashable is stricly necessary for the implementation, we also require 
+    that they are Comparable to make it easier to unify the representation of sets {a,b} = {b,a} as (a,b) or (b,a) in a consistent way.
+    """
+    def __lt__(self, other: "leaf") -> bool: ...
+
 
 type ptwo = tuple[leaf,leaf] 
 """
