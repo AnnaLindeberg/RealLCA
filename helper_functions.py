@@ -323,40 +323,32 @@ def find_roots(G: nx.DiGraph) -> set[ptwo]:
     return roots
 
 
-# TODO: Will the labels/nodes/leafs/groundset always be strings or some other comparable type? 
-# Then will probably be easier to just say that every set {a,b} = {b,a} is represented as (a,b) iff a < b instead of this.
+
 def unify_representation(R: ptwo_bin_rel) -> ptwo_bin_rel:
     """
     Input:
         R: a dictionary representing a binary relation over 𝒫₂(X) ⨉ 𝒫₂(X), with some sets {a,b} possibly represented as both (a,b) and (b,a).
     Output:
-        Modifies R and returns it as a new representation of the relation where any element {a,b} of 𝒫₂(X) now has a consistent representation.
+        Modifies R and returns it as a new representation of the relation where any element {a,b} of 𝒫₂(X) now has a consistent representation (a,b) such that a <= b.
     """
 
-    # When a representation (a,b) or (b,a) for the each set {a,b} is first seen, save it as canoncial.
-    canonical_pairs = set()
-
-    # Goes over the keys (left-hand sides of the relation) 
-    # and merges any pairs of keys (a,b) and (b,a) into the canonical key.
     for (p, q) in R:
-        if (q, p) in canonical_pairs and p != q:    # If the opposite ordering is already canoncial
-            R[(q,p)].update(R.pop((p, q)))          # adds all elements of R[(p,q)] to R[(q, p)] and removes R[(p,q)]
-        else:
-            canonical_pairs.add((p, q))
+        if p > q:
+            if (q, p) in R:
+                R[(q, p)].update(R.pop((p, q)))  # adds all elements of R[(p,q)] to R[(q, p)] and removes R[(p,q)]  
+            else:
+                R[(q, p)] = R.pop((p, q))          # moves R[(p,q)] to R[(q,p)]
     
-
     # Goes over all values (right-hand sides of the relation) 
     # and saves any entries (p,q)R(x,y) where (y,x) has already been decided as canoncial.
-    to_change = []
+    to_reverse = []
     for pq, xys in R.items():
         for (x, y) in xys:
-            if (y, x) in canonical_pairs and x != y:
-                to_change.append((pq, (x, y)))
-            else:
-                canonical_pairs.add((x, y))
+            if x > y:
+                to_reverse.append((pq, (x, y)))
 
     # for each saved entry (p,q)R(x,y), remove it and add the canonical representation (p,q)R(y,x)
-    for (pq, (x, y)) in to_change:
+    for (pq, (x, y)) in to_reverse:
         R[pq].remove((x, y))
         R[pq].add((y, x))
 
