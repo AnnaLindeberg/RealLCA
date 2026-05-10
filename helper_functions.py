@@ -141,12 +141,12 @@ def get_supported_combinations(ab: ptwo, cd: ptwo, supp_plus: set[ptwo]) -> set[
 def X1(R: ptwo_bin_rel) -> tuple[bool, tuple[ptwo, ptwo] | None]:
     """
     Input:
-        R_plus: The reflexive-, transitive-, cross-consistent closure of a binary relation R on 𝒫₂(X) ⨉ 𝒫₂(X).
+        R: A binary relation on 𝒫₂(X) ⨉ 𝒫₂(X).
     Output:
         True if the relation R satisifies condition X1 given in Definition 23.
 
-    The condition says that for all a,b,x in X: {a,b} != {x,x} implies ({a,b},{x,x}) not in R_plus.
-    Equivalently, for all a,b,x in X: if {a,b}R_plus{x,x}, then {a,b} == {x,x}. 
+    The condition says that for all a,b,x in X: {a,b} != {x,x} implies ({a,b},{x,x}) not in R.
+    Equivalently, for all a,b,x in X: if {a,b}R{x,x}, then {a,b} == {x,x}. 
     """
     for (a, b), pqs in R.items():
         for (p, q) in pqs:                      # Check for each abRpq:
@@ -163,10 +163,10 @@ def X2(R: ptwo_bin_rel, R_plus: ptwo_bin_rel) -> tuple[bool, tuple[ptwo, ptwo] |
         True if the relation R satisifies condition X2 given in Definition 23.
 
     The condition says that for all a,b,x,y in X: 
-        if {a,b}tc(R){x,y} but it's not the case that {x,y}tc(R){a,b}, 
+        if {a,b}R{x,y} but it's not the case that {x,y}tc(R){a,b}, 
         then it's not the case that {x,y}R_plus{a,b}.
 
-    tc(R) is the tranisitive closure of R.
+    tc(R) is the transitive closure of R.
     """
 
     tc_R = get_transitive_closure(R)
