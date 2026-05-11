@@ -1,5 +1,5 @@
-import collections.abc # just for typechecking that we have things that can be used as nodes
-from typing import Protocol
+import collections.abc # For typechecking that we have things that can be used as nodes in networkx graphs and as keys in dictionaries.
+from typing import Protocol # For typechecking that we have things that can be compared to unify the representation of sets of leaves.
 
 
 class leaf(collections.abc.Hashable, Protocol):
