@@ -1,10 +1,16 @@
-import collections.abc # just for typechecking that we have things that can be used as nodes
+import collections.abc # For typechecking that we have things that can be used as nodes in networkx graphs and as keys in dictionaries.
+from typing import Protocol # For typechecking that we have things that can be compared to unify the representation of sets of leaves.
 
-type leaf = collections.abc.Hashable
-"""
-Elements of the leaf set X can be of any Hashable type. 
-This restriction is placed so that they will work as nodes in networkx.
-"""
+
+class leaf(collections.abc.Hashable, Protocol):
+    """
+    A leaf is an element of the ground set X. 
+    It can be of any type that is both Hashable and Comparable. 
+    While only Hashable is stricly necessary for the implementation, we also require 
+    that they are Comparable to make it easier to unify the representation of sets of leaves.
+    """
+    def __lt__(self, other: "leaf") -> bool: ...
+
 
 type ptwo = tuple[leaf,leaf] 
 """

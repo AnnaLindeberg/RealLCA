@@ -58,16 +58,9 @@ options:
                        two or more memembers.
 ```
 
-### Use as library
-
-You can also import the function Algorithm_1 and use it in your own code. This might be useful if you want to directly access the networkx graphs in the output or want to run it over multiple sets of constraints. 
-
-TODO: Finish describing what parts might be interesting to import and in which module each can be found.
-
 
 ## Citation and references
-#Todo: will this be a library? Figure out what to call it. Also find how to do proper citation.
 
-If you use this library in your project or code, please consider citing:
+If you use this program in your project or code, please consider citing:
   
-  * __Inferring DAGs and Phylogenetic Networks from Least Common Ancestors, A. Lindeberg, A. Alfonsson, V. Moulton, G. E. Scholz, M. Hellmuth (2025)__
+  * __Inferring DAGs and Phylogenetic Networks from Least Common Ancestors, A. Lindeberg, A. Alfonsson, V. Moulton, G. E. Scholz, M. Hellmuth (2026)__ [arXiv:2511.07965](https://doi.org/10.48550/arXiv.2511.07965)
