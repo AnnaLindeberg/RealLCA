@@ -91,7 +91,10 @@ def get_parameters() -> tuple[str, bool]:
 
 def main():
     """
-    TODO: Add docstring
+    Main entry point for the program. 
+    Gets paramters, reads constraints from csv-file, runs Algorihtm_2
+    and visuales the result if the relation is realizable, otheriwse prints
+    the condition that was broken.
     """
 
     # Imports done here since needed to run as a program, but not for Algorithm_1 to work if imported to other project
