@@ -42,7 +42,7 @@ The program can be run by passing the file `main.py` to your python interpreter.
 If no input file was given then the program will prompt you for it.
 
 ### Options
-``` shell
+``` text
 main.py [-h] [-e] [-s] [filename]
 
 positional arguments:
@@ -52,7 +52,7 @@ positional arguments:
 options:
   -h, --help           		Show this help message and exit.
   -e, --equiv_classes  		Display a legend of all equivalence classes with two or 
-				more members in the plot of the canonical DAG and canonical network. 
+							more members in the plot of the canonical DAG and canonical network. 
   -s, --strict_realization	Test for strict realizability. 
 ```
 
@@ -86,7 +86,7 @@ If no input file was given then the program will prompt you for it.
 
 
 ### Options
-``` shell
+``` text
 main.py [-h] [-e] [-s] [-fnleq] [-flca] [filename]
 
 positional arguments:
@@ -96,7 +96,7 @@ positional arguments:
 options:
   -h, --help           		Show this help message and exit.
   -e, --equiv_classes  		Display a legend of all equivalence classes with two or 
-				more members in the plot of a RF-realizing DAG and network. 
+							more members in the plot of a RF-realizing DAG and network. 
   -s, --strict_realization	Test for strict RF-realizability. 
   -fnleq, --forbidden_nleq	Test for RF-realizability with F_nleq as definition of forbidden. 
   -flca, --forbidden_lca	Test for RF-realizability with F_lca as definition of forbidden. 
