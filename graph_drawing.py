@@ -9,9 +9,7 @@ from lca_types import (
 )
 
 
-def draw_DAG(G: nx.DiGraph, 
-             ax: matplotlib.axes.Axes | None=None
-             ) -> None:
+def draw_DAG(G: nx.DiGraph, ax: matplotlib.axes.Axes | None=None) -> None:
     """
     Input:
         G: A networkx DiGraph where internal nodes are tuples of leaves.
@@ -32,14 +30,21 @@ def draw_DAG(G: nx.DiGraph,
 
     nx.draw(G, pos=flipped_pos, ax=ax, with_labels=True)
 
-def get_legend_text(Q_set: set[ptwo], equiv_R_plus: ptwo_bin_rel) -> list[str]:
+def get_legend_text(Q_set: set[ptwo], equiv_cl: ptwo_bin_rel) -> list[str]:
+    """
+    Input:
+        Q_set: set of tuples of leaves
+        equiv_cl: relation on supp_plus_R
+    Output:
+        List of strings stating the members of each equivalence class of equiv_cl with more than one member
+    """
 
     non_leaf_Qs = [ab for ab in Q_set if ab[0] != ab[1]]
 
     leg_list = []
     for ab in non_leaf_Qs:
         entry = ""
-        equivalent_cds = equiv_R_plus[ab]
+        equivalent_cds = equiv_cl[ab]
         for cd in equivalent_cds:
             entry = entry + f"{cd[0]}{cd[1]} = "
         entry = entry.strip(" = ")
@@ -50,9 +55,6 @@ def get_legend_text(Q_set: set[ptwo], equiv_R_plus: ptwo_bin_rel) -> list[str]:
 
 def add_legend(legend_text: list[str]) -> None:
 
-    # TODO:
-    # ChatGPT inspired solution to add a text-only legend. 
-    # Suggestions for other ways of adding the equivalence class info are welcome.
     from matplotlib.lines import Line2D
     handles = [
         Line2D([], [], linestyle="none")

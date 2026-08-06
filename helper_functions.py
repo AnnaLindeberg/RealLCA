@@ -7,9 +7,9 @@ def get_extended_support(X: set[leaf], R: ptwo_bin_rel) -> set[ptwo]:
     """
     Input: 
         X: A set of leaf nodes.
-        R: A dict representing a binaryrelation on 𝒫₂(X) ⨉ 𝒫₂(X).
+        R: A dict representing a binary relation on 𝒫₂(X).
     Output: 
-        The extended support of R
+        The extended support of R, i.e., supp_plus_R.
 
     Given a binary relation R, get the extended support supp_plus_R.
 
@@ -32,16 +32,16 @@ def get_extended_support(X: set[leaf], R: ptwo_bin_rel) -> set[ptwo]:
 
     return out
 
-# Algorithm 1
+# Algorithm 1 in Lindeberg et al. (2026). Inferring DAGs and phylogenetic networks from least common ancestors
 def get_R_plus(R: ptwo_bin_rel, X: set[leaf]) -> ptwo_bin_rel:
     """
     Input:
-        R: A binary relation on 𝒫₂(X) ⨉ 𝒫₂(X)
-        X: A set of leaf nodes
+        R: A binary relation on 𝒫₂(X).
+        X: A set of leaf nodes.
     Output:
-        The relexive-, transitive-, cross-consistent closure of R, called R_plus.
+        The supp_plus_R-reflexive-, transitive-, cross-consistent closure of R, called R_plus.
 
-    This is an implementation of Algorithm 1 in the article.
+    This is an implementation of Algorithm 1 in Lindeberg et al. (2026). Inferring DAGs and phylogenetic networks from least common ancestors.
         Let S = R
         R1: Add pSp for each p in supp_plus_R
         Repeatedly apply the following rules until they can no longer be applied:
@@ -60,9 +60,10 @@ def get_R_plus(R: ptwo_bin_rel, X: set[leaf]) -> ptwo_bin_rel:
 
     while True:
 
-        # R2, applied exhaustivley
+        # R2, applied exhaustively
         S = get_transitive_closure(S)
 
+        # R3, applied exhaustively
         change_made = R3(S, supp_plus_R)
         
         if not change_made:
@@ -70,34 +71,73 @@ def get_R_plus(R: ptwo_bin_rel, X: set[leaf]) -> ptwo_bin_rel:
 
     return S
 
-
-
-# TODO: The notation with ab and cd here doesn't match up that well with the article.
-def R3(S: ptwo_bin_rel, supp_plus: set[ptwo]) -> bool:
+def get_Fcl_R(R: ptwo_bin_rel, F: ptwo_bin_rel, X: set[leaf]) -> ptwo_bin_rel:
     """
     Input:
-        S: A binary relation on 𝒫₂(X) ⨉ 𝒫₂(X).
-        supp_plus: The extended support of S
+        R: A binary relation on 𝒫₂(X).
+        F: A binary relation on 𝒫₂(X).
+        X: A set of leaf nodes.
     Output:
-        True if one or more applications of the rule R3 was performed, False otherwise.
+        The supp_plus_R-reflexive-, transitive-, cross-consistent, F-csym closure of R, called Fcl_R.
 
-    Looks at all pairs of keys (a,b) and (c,d) in S, 
-    for each combination (m,n) among (a,c), (a,d), (b,c), (b,d) in the extended support, 
-    Takes all (x,y)'s in the intersecion of S[(a,b)] and S[(c,d)] and adds (m,n)S(x,y).
-
-    Note that this preserves the propery that any element {a,b} of 𝒫₂(X) in S has a consistent representation 
-    since we only add values to keys already in the extended support, and the extended support uses consistent represenation.
+    This is an implementation of the construction in Theorem 4.7.
+        Let S = R
+        R1: Add pSp for each p in supp_plus_R
+        Repeatedly apply the following rules until they can no longer be applied:
+            R2: if pSq and qSr, add pSr
+            R3: if ab in supp_plus_R and acSxy and bdSxy for some c,d in X, add abSxy
+            R4: if pSq and pFq, add qSq
     """
+    supp_plus_R = get_extended_support(X, R)
+    S: ptwo_bin_rel = copy.deepcopy(R)
+
+    #R1
+    for p in supp_plus_R:
+        if not p in S:
+            S[p] = {p}
+        else:
+            S[p].add(p)
+
+    while True:
+        # R2, applied exhaustively
+        S = get_transitive_closure(S)
+
+        # R3, applied exhaustively
+        change_made_1 = R3(S, supp_plus_R)
+
+        # R4, applied exhaustively
+        change_made_2 = R4(S, F)
+
+        if change_made_1 is False and change_made_2 is False:
+            break
+
+    return S
+
+def R3(S: ptwo_bin_rel, supp_plus: set[ptwo]) -> bool:
+    """
+        Input:
+            S: A binary relation on 𝒫₂(X).
+            supp_plus: The extended support of S.
+        Output:
+            True if one or more applications of the rule R3 was performed, False otherwise.
+
+        Looks at all pairs of keys (a,c) and (b,d) in S.
+        For each combination (m,n) among (a,b), (a,d), (c,b), (c,d) in the extended support,
+        takes all (x,y)'s in the intersection of S[(a,c)] and S[(b,d)] and adds (m,n)S(x,y).
+
+        Note that this preserves the property that any element {a,b} of 𝒫₂(X) in S has a consistent representation,
+        since we only add values to keys already in the extended support, and the extended support uses consistent representation.
+        """
     change_made = False
-    for ab in S:
-        for cd in S:
-            # Supported combinations are all of (a,c), (a,d), (b,c), (b,d) that are in the extended support.
-            # Note that the nested loop structure makes it so we also check (c, a), (d, a) etc later.
-            supported_combinations = get_supported_combinations(ab, cd, supp_plus)
+    for ac in S:
+        for bd in S:
+            # Supported combinations are all of (a,b), (a,d), (c,b), (c,d) that are in the extended support.
+            # (b,a), (d,a), (b,c), and (d,c) are tested in a later execution of the nested for-loops.
+            supported_combinations = get_supported_combinations(ac, bd, supp_plus)
             if len(supported_combinations) == 0:
                 continue
 
-            overlap = S[ab].intersection(S[cd])  # All xy such that abSxy and cdSxy 
+            overlap = S[ac].intersection(S[bd])  # All xy such that acSxy and bdSxy
             if len(overlap) == 0:
                 continue
 
@@ -106,44 +146,70 @@ def R3(S: ptwo_bin_rel, supp_plus: set[ptwo]) -> bool:
                 S[p].update(overlap)
                 if pre_len != len(S[p]):
                     change_made = True
+
     return change_made
 
-
-def get_supported_combinations(ab: ptwo, cd: ptwo, supp_plus: set[ptwo]) -> set[ptwo]:
+def get_supported_combinations(ac: ptwo, bd: ptwo, supp_plus: set[ptwo]) -> set[ptwo]:
     """
     Input:
-        ab: A tuple (a,b)
-        cd: A tuple (c,d)
+        ac: A tuple (a,c)
+        bd: A tuple (b,d)
         supp_plus: The extended support for some relation
     Output:
-        All combinations (g,h) where 
-            g in (a,b) 
-            and h in (c,d) 
+        All combinations (g,h) where
+            g in (a,c)
+            and h in (b,d)
             and (g,h) in supp_plus.
     """
 
-    a, b = ab
-    c, d = cd
-    
+    a, c = ac
+    b, d = bd
+
     supported_combinations = set()
-    if (a, c) in supp_plus:
-        supported_combinations.add((a, c))
+    if (a, b) in supp_plus:
+        supported_combinations.add((a, b))
     if (a, d) in supp_plus:
         supported_combinations.add((a, d))
-    if (b, c) in supp_plus:
-        supported_combinations.add((b, c))
-    if (b, d) in supp_plus:
-        supported_combinations.add((b, d))
-    
+    if (c, b) in supp_plus:
+        supported_combinations.add((c, b))
+    if (c, d) in supp_plus:
+        supported_combinations.add((c, d))
+
     return supported_combinations
 
+def R4(S: ptwo_bin_rel, F: ptwo_bin_rel) -> bool:
+    """
+    Input:
+        S: A binary relation on 𝒫₂(X).
+        F: A binary relation on 𝒫₂(X).
+    Output:
+        True if one or more applications of the rule R4 was performed, False otherwise.
+
+    Look at all (p,q) in both S and F and add (q,p) to S.
+
+    Note that this preserves the property that any element {a,b} of 𝒫₂(X) in S has a consistent representation,
+    since we only add values to keys already in the extended support, and the extended support uses consistent representation.
+    """
+    change_made = False
+    for p in S:
+        if p not in F:
+            continue
+        for q in S[p]:
+            pre_len = len(S[q])  # Save the length before updates to see if a change was made
+            if q in F[p]:
+                S[q].update({p})
+
+            if pre_len != len(S[q]):
+                change_made = True
+
+    return change_made
 
 def X1(R: ptwo_bin_rel) -> tuple[bool, tuple[ptwo, ptwo] | None]:
     """
     Input:
-        R: A binary relation on 𝒫₂(X) ⨉ 𝒫₂(X).
+        R: A binary relation on 𝒫₂(X).
     Output:
-        True if the relation R satisifies condition X1 given in Definition 23.
+        True if the relation R satisfies condition X1 given in Definition 22.
 
     The condition says that for all a,b,x in X: {a,b} != {x,x} implies ({a,b},{x,x}) not in R.
     Equivalently, for all a,b,x in X: if {a,b}R{x,x}, then {a,b} == {x,x}. 
@@ -151,20 +217,38 @@ def X1(R: ptwo_bin_rel) -> tuple[bool, tuple[ptwo, ptwo] | None]:
     for (a, b), pqs in R.items():
         for (p, q) in pqs:                      # Check for each abRpq:
             if p == q and (p != a or p != b):   # if pq = pp, and ab != pp
-                return False, ((a,b), (p,q))                  # then the condtion is broken
+                return False, ((a,b), (p,q))                  # then the condition is broken
     return True, None
 
-def X2(R: ptwo_bin_rel, R_plus: ptwo_bin_rel) -> tuple[bool, tuple[ptwo, ptwo] | None]:
+def Y1(Fcl_R: ptwo_bin_rel) -> tuple[bool, tuple[ptwo, ptwo] | None]:
     """
     Input:
-        R: A binary relation on 𝒫₂(X) ⨉ 𝒫₂(X).
-        R_plus: The reflexive-, transitive-, cross-consistent closure of a binary relation R on 𝒫₂(X) ⨉ 𝒫₂(X).
+        Fcl_R: The F-closure of a binary relation R on 𝒫₂(X).
     Output:
-        True if the relation R satisifies condition X2 given in Definition 23.
+        True if the pair (R,F) of relations satisfies condition Y1 given in Definition 4.11.
+
+    The condition says that for all a,b,x in X: {a,b} != {x,x} implies ({a,b},{x,x}) not in Fcl_R.
+    Equivalently, for all a,b,x in X: if {a,b}Fcl_R{x,x}, then {a,b} == {x,x}.
+    """
+    for (a, b), pqs in Fcl_R.items():
+        for (p, q) in pqs:                      # Check for each abRpq:
+            if p == q and (p != a or p != b):   # if pq = pp, and ab != pp
+                return False, ((a,b), (p,q))                  # then the condition is broken
+    return True, None
+
+def X2_resp_Y2(R: ptwo_bin_rel, cl: ptwo_bin_rel) -> tuple[bool, tuple[ptwo, ptwo] | None]:
+    """
+    Input:
+        R: A binary relation on 𝒫₂(X).
+        cl: The closure R_plus resp. F-closure Fcl_R of R.
+    Output:
+        True if the relation R satisfies condition X2 given in Definition 22.
+        resp.
+        True if the pair (R,F) satisfies condition Y2 given in Definition 4.11.
 
     The condition says that for all a,b,x,y in X: 
         if {a,b}R{x,y} but it's not the case that {x,y}tc(R){a,b}, 
-        then it's not the case that {x,y}R_plus{a,b}.
+        then it's not the case that {x,y}cl{a,b}.
 
     tc(R) is the transitive closure of R.
     """
@@ -174,140 +258,231 @@ def X2(R: ptwo_bin_rel, R_plus: ptwo_bin_rel) -> tuple[bool, tuple[ptwo, ptwo] |
     for ab, xys in R.items():
         for xy in xys:                                      # Check for each (ab, xy) in R.
             if (xy not in tc_R) or (ab not in tc_R[xy]):    # If (xy, ab) not in tc(R),
-                if (ab in R_plus[xy]):                      # and (xy, ab) in R_plus
-                    return False, (ab,xy)                            # then the condition is broken.
+                if (ab in cl[xy]):                          # and (xy, ab) in cl
+                    return False, (ab,xy)                   # then the condition is broken.
             
     return True, None
 
 def get_transitive_closure(R: ptwo_bin_rel) -> ptwo_bin_rel:
     """
     Input:
-        R: A binary relation on 𝒫₂(X) ⨉ 𝒫₂(X).
+        R: A binary relation on 𝒫₂(X).
     Output:
         The transitive closure of R.
     
-    Makes a deepcopy of R and repeatedly applies the rule R2 on the copy to get the transitive closure.
+    Transforms R to a digraph and uses the transitive closure command from networkx.
     """
 
     R_graph = nx.DiGraph(R)
     tc_R_graph = nx.transitive_closure(R_graph)
     tc_R = nx.to_dict_of_lists(tc_R_graph)
     tc_R = {key: set(val) for key, val in tc_R.items()}
-    return tc_R # type: ignore
+    return tc_R
 
-
-
-
-def get_equiv_r_plus(R_plus: ptwo_bin_rel) -> ptwo_bin_rel:
+def is_transitive_closure_asymmetric(R: ptwo_bin_rel) -> bool:
     """
     Input:
-        R_plus: The reflexive-, transitive-, cross-consistent closure of a binary relation R on 𝒫₂(X) ⨉ 𝒫₂(X).
+        R: A binary relation on 𝒫₂(X).
     Output:
-        An equivalence relation equiv_r_plus as described in Definition 26.
+        True if transitive closure of R is asymmetric otherwise false.
+
+    Check whether for each (p,q) in tc(R), it holds that (q,p) not in tc(R).
+    """
+
+    tc_r = get_transitive_closure(R)
+    for p in tc_r:
+        for q in tc_r[p]:
+            if q in tc_r and p in tc_r[q]:
+                return False
+
+    return True
+
+def is_intersection_F_with_cl_R_empty(F: ptwo_bin_rel, cl_R: ptwo_bin_rel) -> bool:
+    """
+    Input:
+        F: A binary relation on 𝒫₂(X).
+        cl_R: The closure of a binary relation R on 𝒫₂(X).
+    Output:
+        True if intersection of F with cl_R is empty.
+    """
+
+    for p in F:
+        for q in F[p]:
+            if p in cl_R and q in cl_R[p]:
+                    return False
+
+    return True
+
+def get_R_lca(R: ptwo_bin_rel, F: ptwo_bin_rel) -> ptwo_bin_rel:
+    """
+    Input:
+        R: A binary relation on 𝒫₂(X).
+        F: A binary relation on 𝒫₂(X).
+    Output:
+        R_lca: extended relation R
+
+    R_lca = R union {(ab,ab) : ab in supp_F}
+    """
+    R_lca: ptwo_bin_rel = copy.deepcopy(R)
+
+    # get supp_F
+    supp_F = set(F.keys())
+    for qs in F.values():
+        for q in qs:
+            supp_F.add(q)
+
+    # extend R
+    for p in supp_F:
+        if p in R_lca:
+            R_lca[p].add(p)
+        else:
+            R_lca[p] = {p}
+
+    return R_lca
+
+def get_equiv_cl(cl: ptwo_bin_rel) -> ptwo_bin_rel:
+    """
+    Input:
+        cl: The closure R_plus resp. F-closure Fcl_R of a binary relation R on 𝒫₂(X).
+    Output:
+        An equivalence relation equiv_r_plus resp. equiv_fcl_r as described in Definition 25 resp. Definition 4.14.
         
-    The relation equiv_r_plus is a binary relation on the extended support of R, 
-    and defined such that p equiv_r_plus q iff p R_plus q and q R_plus p.
+    The relation equiv_cl is a binary relation on the extended support of R,
+    and defined such that p equiv_cl q iff p cl q and q cl p.
     """
 
-    equiv_rel: ptwo_bin_rel = {p: {p} for p in R_plus.keys()}   # R_plus is reflexive, so (p,p) is in R_plus for all p in the extended support.
-                                                                # This is mainly for convienice to avoid key errors in the next part.
+    equiv_cl: ptwo_bin_rel = {p: {p} for p in cl.keys()}   # cl is supp_plus_R-reflexive, so (p,p) is in cl for all p in the extended support.
+                                                            # This is mainly for convenience to avoid key errors in the next part.
 
-    for p, qs in R_plus.items():
-        for q in qs:                        # For each (p,q) in R_plus:
-            if p in R_plus[q]:              # if (q,p) in R_plus,
-                equiv_rel[p].add(q)         # then add (p,q) to equiv_R_plus
+    for p, qs in cl.items():
+        for q in qs:                        # For each (p,q) in cl:
+            if p in cl[q]:                  # if (q,p) in cl,
+                equiv_cl[p].add(q)         # then add (p,q) to equiv_cl
 
-    return equiv_rel
+    return equiv_cl
 
 
-def get_q_set(equiv_R_plus: ptwo_bin_rel) -> set[ptwo]:
+def get_q_set(equiv_cl: ptwo_bin_rel) -> set[ptwo]:
     """
     Input:
-        equiv_r_plus: An equivalence relation on the extended support of some relation R.
+        equiv_cl: An equivalence relation on the extended support of some relation R.
     Output:
-        A set Q_set containing one element from each equivalence class in equiv_r_plus.
+        A set Q_set containing one element from each equivalence class of equiv_cl.
     """
 
     to_keep = set()
     to_remove = set()
-    for a in equiv_R_plus.keys():
+    for a in equiv_cl.keys():
         if a in to_remove:
             continue
         to_keep.add(a)
-        bs = equiv_R_plus[a]
+        bs = equiv_cl[a]
         to_remove.update(bs)
         
     return to_keep
 
 
-def get_order_r_plus(Q_set: set[ptwo], R_plus: ptwo_bin_rel) -> ptwo_bin_rel: 
+def get_order_cl(cl: ptwo_bin_rel, Q_set: set[ptwo]) -> ptwo_bin_rel:
     """
     Input:
-        Q_set: the set of equivalence classes in equiv_r_plus
-        R_plus: The reflexive-, transitive-, cross-consistent closure of a binary relation R on 𝒫₂(X) ⨉ 𝒫₂(X)
+        cl: The closure R_plus resp. F-closure Fcl_R of a binary relation R on 𝒫₂(X).
+        Q_set: the set of equivalence classes in equiv_r_plus resp. equiv_Fcl_R.
     Output:
-        An ordering of the equivalnce classes in Q_set as defined in Definition 26.
+        An ordering of the equivalence classes in Q_set as defined in Definition 25 resp. Definition 4.14.
 
-    For two classes [p] and [q] in Q_set, we have that [p] <= [q] iff p R_plus q. 
+    For two classes [p] and [q] in Q_set, we have that [p] <= [q] iff p cl q.
     """
 
-    order_R_plus = {p: {p} for p in Q_set}  # The reflexive pairs are part of the ordering, 
-                                            # but will not be represented in the canonical DAG 
-                                            # since we only add edges between distinct classes
+    order_cl = {p: {p} for p in Q_set}  # The reflexive pairs are part of the ordering,
+                                        # but will not be represented in the canonical DAG
+                                        # since we only add edges between distinct classes
 
     for p in Q_set:
         for q in Q_set:
-            if q in R_plus[p]:
-                order_R_plus[p].add(q)
+            if q in cl[p]:
+                order_cl[p].add(q)
 
-    return order_R_plus
+    return order_cl
 
-def get_canoncial_dag(order_R_plus: ptwo_bin_rel) -> nx.DiGraph:
+def get_canonical_dag(order_cl: ptwo_bin_rel) -> nx.DiGraph:
     """
     Input:
-        order_r_plus: An ordering of the equivalence classes of R_plus
+        order_cl: An ordering of the equivalence classes of equiv_r_plus resp. equiv_fcl_r.
     Output:
-        The canonical dag of R as a networkx DiGraph
+        The canonical DAG of R resp. (R,F) as a networkx DiGraph.
 
-    See Definition 27. 
-    The canonical DAG G_r is the Hasse Diagram of the poset (Q_set, order_R_plus) with leafs (a,a) renamed to a.
+    See Definition 26 resp. Definition 4.15.
+    The canonical DAG is the Hasse Diagram of the poset (Q_set, order_cl) with leaves (a,a) renamed to a.
     """
 
-    G_r = nx.DiGraph(order_R_plus).reverse()        # reverse it so we get edges q -> p instead of p -> q
-                                                    # This performs step 1 and 2 in definition 5.5, but also adds a self-loop to each class
-    G_r.remove_edges_from(nx.selfloop_edges(G_r))   # This removes the self-loops
+    G = nx.DiGraph(order_cl).reverse()            # reverse it so we get edges q -> p instead of p -> q
+    G.remove_edges_from(nx.selfloop_edges(G))     # remove the self-loops
     
     # Find all classes [aa]
     leaf_list = []
-    for node in G_r.nodes:
+    for node in G.nodes:
         if node[0] == node[1]: #type: ignore
             leaf_list.append(node)
     
     leaf_dict = {node: node[0] for node in leaf_list} # Rename each (a,a) to a
-    G_r = nx.relabel_nodes(G_r, leaf_dict)
-    G_r = nx.transitive_reduction(G_r)
+    G = nx.relabel_nodes(G, leaf_dict)
+    G = nx.transitive_reduction(G)
 
-    return G_r
+    return G
 
-def get_canoncial_network(G_r) -> nx.DiGraph:
+def get_FR_extension(R: ptwo_bin_rel, F: ptwo_bin_rel, X: set[leaf], G_RF: nx.DiGraph) -> nx.DiGraph:
     """
     Input:
-        G_r: the canonical DAG for a relation R on 𝒫₂(X) ⨉ 𝒫₂(X)
+        R: A binary relation on 𝒫₂(X).
+        F: A binary relation on 𝒫₂(X).
+        X: A set of leaf nodes.
+        G_RF: The canonical DAG of (R,F) as a networkx DiGraph.
     Output:
-        The canonincal network of R as networkx DiGraph
+        The FR-extension of G_RF as defined before Observation 4.2.
 
-    See definition 37.
+    Computes the FR-extension of the canonical DAG of (R,F), i.e., for all xy in supp_F setminus supp_plus_R, apply a
+    xy-extension to G_RF, i.e., add new vertices u,v and the arcs (u,x),(u,y),(v,x),(v,y).
     """
 
-    N_r = G_r.copy()
+    G = G_RF.copy()
 
-    roots = find_roots(N_r)             # Find all roots of G_r
+    supp_plus_R = get_extended_support(X, R) # compute support
+    supp_plus_F = get_extended_support(X, F)
+
+    # since R,F are both relations on P_2(X), supp_F \ supp_plus_R = supp_plus_F \ supp_plus_R
+
+    for (x,y) in supp_plus_F:
+        if (x,y) not in supp_plus_R:
+            edges = [
+                (f"u_{x, y}", x),
+                (f"u_{x, y}", y),
+                (f"v_{x, y}", x),
+                (f"v_{x, y}", y),
+            ]
+
+            G.add_edges_from(edges)
+
+    return G
+
+def get_network(G: nx.DiGraph) -> nx.DiGraph:
+    """
+    Input:
+        G: Some DAG as networkx DiGraph.
+    Output:
+        The network obtained from G by adding a unique root and connecting it to all roots of G.
+
+    Given the canonical DAG of R, this provides the canonical network of R, see Definition 36.
+    """
+
+    N = G.copy()
+
+    roots = find_roots(N)             # Find all roots of G
 
     if len(roots) != 1:
         for node in roots:
-            N_r.add_edge("rho", node)   # If there are multiple roots, connect them all as children to a new root rho.
+            N.add_edge("rho", node)   # If there are multiple roots, connect them all as children to a new root rho.
 
-    return N_r
+    return N
 
 def find_roots(G: nx.DiGraph) -> set[ptwo]:
     """
@@ -324,32 +499,32 @@ def find_roots(G: nx.DiGraph) -> set[ptwo]:
 
 
 
-def unify_representation(R: ptwo_bin_rel) -> ptwo_bin_rel:
+def unify_representation(S: ptwo_bin_rel) -> ptwo_bin_rel:
     """
     Input:
-        R: a dictionary representing a binary relation over 𝒫₂(X) ⨉ 𝒫₂(X), with some sets {a,b} possibly represented as both (a,b) and (b,a).
+        S: a dictionary representing a binary relation on 𝒫₂(X), with some sets {a,b} possibly represented as both (a,b) and (b,a).
     Output:
-        Modifies R and returns it as a new representation of the relation where any element {a,b} of 𝒫₂(X) now has a consistent representation (a,b) such that a <= b.
+        Modifies S and returns it as a new representation of the relation where any element {a,b} of 𝒫₂(X) now has a consistent representation (a,b) such that a <= b.
     """
 
-    for (p, q) in R:
+    for (p, q) in S:
         if p > q:
-            if (q, p) in R:
-                R[(q, p)].update(R.pop((p, q)))  # adds all elements of R[(p,q)] to R[(q, p)] and removes R[(p,q)]  
+            if (q, p) in S:
+                S[(q, p)].update(S.pop((p, q)))    # adds all elements of S[(p,q)] to S[(q, p)] and removes S[(p,q)]
             else:
-                R[(q, p)] = R.pop((p, q))          # moves R[(p,q)] to R[(q,p)]
+                S[(q, p)] = S.pop((p, q))          # moves S[(p,q)] to S[(q,p)]
     
     # Goes over all values (right-hand sides of the relation) 
-    # and saves any entries (p,q)R(x,y) where (y,x) has already been decided as canoncial.
+    # and saves any entries (p,q)S(x,y) where (y,x) has already been decided as canonical.
     to_reverse = []
-    for pq, xys in R.items():
+    for pq, xys in S.items():
         for (x, y) in xys:
             if x > y:
                 to_reverse.append((pq, (x, y)))
 
-    # for each saved entry (p,q)R(x,y), remove it and add the canonical representation (p,q)R(y,x)
+    # for each saved entry (p,q)S(x,y), remove it and add the canonical representation (p,q)S(y,x)
     for (pq, (x, y)) in to_reverse:
-        R[pq].remove((x, y))
-        R[pq].add((y, x))
+        S[pq].remove((x, y))
+        S[pq].add((y, x))
 
-    return R
+    return S
